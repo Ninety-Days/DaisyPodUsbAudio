@@ -70,7 +70,7 @@ patch already applied. If you only want to hear the device work, this skips the
 entire build section below.
 
 Download `DaisyPodUsbAudio.bin` from [Releases](../../releases) and flash it
-with the [Electro-Smith web programmer](https://electro-smith.github.io/Programmer/):
+with the [Electro-Smith web programmer](https://flash.daisy.audio/):
 put the Pod into DFU mode (hold BOOT, tap RESET, release BOOT), connect, choose
 the file, flash.
 
