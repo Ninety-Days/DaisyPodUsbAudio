@@ -86,8 +86,8 @@ does not* below, and the README summarises the decision.
 The fix is four constants in a file that lives **outside this repository**:
 `../../libDaisy/src/sys/system.cpp` (path relative to this project, per the
 `Makefile`'s expected layout), inside `System::ConfigureClocks()`, in the block
-commented `// PLL 3`. In current libDaisy master that block is at **lines
-490–497**:
+commented `// PLL 3`. At `85172e2b` that block is at **lines 490–497**, one
+line earlier at `cc146d50`:
 
 | line | stock libDaisy | patch to |
 |---|---|---|

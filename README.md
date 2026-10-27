@@ -188,7 +188,8 @@ only way to know is to run the diagnostic yourself.
 <summary><strong>How to apply it (under a minute, plus a library rebuild)</strong></summary>
 
 Edit `../../libDaisy/src/sys/system.cpp`, inside `System::ConfigureClocks()`,
-in the block commented `// PLL 3` — lines 490–497 in current libDaisy master:
+in the block commented `// PLL 3` — lines 490–497 at `85172e2b`, one line
+earlier at `cc146d50`:
 
 | line | stock | patch to |
 |---|---|---|
