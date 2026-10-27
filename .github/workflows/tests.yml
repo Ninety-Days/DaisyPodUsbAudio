@@ -1,0 +1,119 @@
+name: tests
+
+# The reader's figures in README.md and docs/INTERPOLATION.md are produced by
+# these tests, and every step below fails the build when a number leaves its
+# bound -- the claims are checked on each push, not merely recomputed and
+# printed. None of them needs hardware.
+#
+# The bounds live next to the code that measures each figure, not here, so
+# that changing a limit and changing what it limits happen in one place.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  interpolator:
+    name: Interpolator error and AM depth
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install numpy
+        run: pip install numpy
+
+      # Before measuring the reader, check the tests are measuring the one
+      # that ships. fd_read_frame() cannot be included on a desktop, so each
+      # test holds a copy of its source; this fails the build when a copy
+      # drifts from usbd_audio_if.c. Without it a firmware-only edit leaves
+      # CI green while the tests prove properties of the old reader.
+      - name: Tested reader matches the shipped reader
+        run: python3 tests/check_reader_copies.py
+
+      - name: Interpolation error against an ideal fractional delay
+        run: bash tests/interp/check.sh
+
+      - name: AM depth, closed form
+        working-directory: tests/am_probe
+        run: python3 closed_form.py
+
+      - name: AM depth, driving the shipped reader
+        working-directory: tests/am_probe
+        run: |
+          cc -O2 -Wall -I../.. -DFD_USE_SINC=0 -o /tmp/am_cr   am_probe.c -lm
+          cc -O2 -Wall -I../.. -DFD_USE_SINC=1 -o /tmp/am_sinc am_probe.c -lm
+          /tmp/am_cr   12000 4 12 > /tmp/cr.f32
+          /tmp/am_sinc 12000 4 12 > /tmp/sinc.f32
+          echo "Catmull-Rom:"
+          python3 demod.py /tmp/cr.f32   12000 4 --max-depth 1.30
+          echo "polyphase sinc:"
+          python3 demod.py /tmp/sinc.f32 12000 4 --max-depth 0.01
+
+      - name: Drift-loop beat simulation
+        working-directory: tests/am_probe
+        run: python3 beat_sim.py
+
+  coefficient-table:
+    name: Shipped table is reproducible from its generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install numpy
+        run: pip install numpy
+
+      # fd_sinc_table.h is generated, and the README says not to edit it by
+      # hand. This regenerates it and fails if the result differs from what
+      # is committed.
+      - name: Regenerate and compare
+        run: |
+          cp fd_sinc_table.h /tmp/committed.h
+          python3 gen_table.py
+          diff /tmp/committed.h fd_sinc_table.h
+
+      # q16-drift-corrector ships its own generator and its own table. It is
+      # a separate, vendorable component and must not reach into the parent
+      # tree, so the duplication is deliberate -- but that means its table
+      # gets no benefit from the check above. Same rule, applied where the
+      # code actually lives.
+      #
+      # Only reproducibility is checked, not agreement with fd_sinc_table.h.
+      # The two are independent by design: the component may legitimately
+      # choose a different tap or phase count without the firmware moving.
+      - name: Standalone component table is reproducible too
+        working-directory: q16-drift-corrector
+        run: |
+          cp q16_sinc_table.h /tmp/q16_committed.h
+          python3 gen_table.py
+          diff /tmp/q16_committed.h q16_sinc_table.h
+
+  standalone-corrector:
+    name: q16-drift-corrector self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The component ships with and without its coefficient table; both
+      # configurations must build and pass.
+      - name: With the sinc reader
+        working-directory: q16-drift-corrector
+        run: |
+          gcc -std=c99 -Wall -Wextra -O2 test_q16.c -o /tmp/t_sinc -lm
+          /tmp/t_sinc
+
+      - name: With Q16_NO_SINC
+        working-directory: q16-drift-corrector
+        run: |
+          gcc -std=c99 -Wall -Wextra -O2 -DQ16_NO_SINC test_q16.c -o /tmp/t_cubic -lm
+          /tmp/t_cubic
