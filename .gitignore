@@ -1,0 +1,28 @@
+# Build output
+build/
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+
+# Test binaries and captures
+tests/**/*.f32
+q16-drift-corrector/test_q16
+
+# Diagnostic logs from soak_run.py
+logs/
+*.csv
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
