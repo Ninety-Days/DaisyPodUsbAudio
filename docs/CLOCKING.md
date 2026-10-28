@@ -164,9 +164,15 @@ inside `RCC_PLL3VCIRANGE_1` (2–4 MHz) and the VCO inside `RCC_PLL3VCOWIDE`
 (192–836 MHz).
 
 `PLL3P` is 25 because the patch changes libDaisy itself, and 25 keeps every
-sample rate libDaisy offers exact: 8, 16, 32, 48 and 96 kHz get MCKDIV 12, 6,
-3, 2 and 1. `PLL3P = 10` is exact at 8, 16 and 48 kHz too, but runs 32 kHz and
-96 kHz +7 % and +25 % fast for any project that uses them.
+sample rate libDaisy offered before v9.0.0 exact: 8, 16, 32, 48 and 96 kHz get
+MCKDIV 12, 6, 3, 2 and 1. `PLL3P = 10` is exact at 8, 16 and 48 kHz too, but
+runs 32 kHz and 96 kHz +7 % and +25 % fast for any project that uses them.
+
+libDaisy v9.0.0 added `SAI_192KHZ`, and with this patch it runs at 96 kHz.
+With MCLK at 256 × Fs, 192 kHz needs a kernel that is a multiple of
+49.152 MHz, and no integer PLL3 setting reaches one from a 16 MHz crystal. Do
+not apply the patch to a libDaisy v9.0.0 or later that also builds 192 kHz
+projects.
 
 ### What the patch buys, and what it does not
 

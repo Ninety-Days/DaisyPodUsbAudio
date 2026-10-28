@@ -125,8 +125,10 @@ Both commits were built and run in both clock configurations — stock PLL3 and
 patched — so four builds in all. `src/sys/system.cpp` is the only tracked file
 that differs between them; checking out either commit and applying that one
 edit reproduces the patched case, and leaving it alone reproduces the stock
-case. The diagnostic figures quoted under the PLL3 section below were taken on
-the newer of the two.
+case. The two patched builds used the earlier `PLL3P = 10` form of the patch;
+the `PLL3P = 25` form below was built and run on the newer commit. The
+diagnostic figures quoted under the PLL3 section below were taken on the newer
+of the two.
 
 A future libDaisy can carry an ST release that changes something neither of
 these two versions covers, and break the build. If that happens, see
@@ -206,6 +208,10 @@ earlier at `cc146d50`:
 
 Four lines. `PLL3Q` and `PLL3FRACN` stay exactly as they are — `FRACN` must
 remain 0.
+
+On libDaisy v9.0.0 or later the patch also makes `SAI_192KHZ` run at 96 kHz in
+every project built against that copy; see
+[`docs/CLOCKING.md`](docs/CLOCKING.md).
 
 > **There are two copies of this block in that file.** Lines 728–735 hold a
 > commented-out duplicate carrying the same stock values. Patching only that
