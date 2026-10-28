@@ -93,7 +93,7 @@ line earlier at `cc146d50`:
 |---|---|---|
 | 490 | `PeriphClkInitStruct.PLL3.PLL3M = 6;` | `PeriphClkInitStruct.PLL3.PLL3M = `**`5`**`;` |
 | 491 | `PeriphClkInitStruct.PLL3.PLL3N = 295;` | `PeriphClkInitStruct.PLL3.PLL3N = `**`192`**`;` |
-| 492 | `PeriphClkInitStruct.PLL3.PLL3P = 16;` | `PeriphClkInitStruct.PLL3.PLL3P = `**`10`**`;` |
+| 492 | `PeriphClkInitStruct.PLL3.PLL3P = 16;` | `PeriphClkInitStruct.PLL3.PLL3P = `**`25`**`;` |
 | 493 | `PeriphClkInitStruct.PLL3.PLL3Q = 4;` | **unchanged** |
 | 494 | `PeriphClkInitStruct.PLL3.PLL3R = 32;` | `PeriphClkInitStruct.PLL3.PLL3R = `**`25`**`;` |
 | 495 | `PLL3RGE = RCC_PLL3VCIRANGE_1;` | **unchanged** |
@@ -131,7 +131,7 @@ python3 read_sai_clock.py
 
 | `PLL3DIVR` reads | meaning |
 |---|---|
-| **`0x180312BF`** | patch is live — SAI at **48000.0000 Hz**, 0.0 ppm |
+| **`0x180330BF`** | patch is live — SAI at **48000.0000 Hz**, 0.0 ppm |
 | `0x1F031F26` | stock libDaisy — **+298 ppm**, patch not applied or library not rebuilt |
 
 The register value is derived from the constants above, so it is a direct test
@@ -148,18 +148,25 @@ the chain below has to be recomputed from that crystal rather than copied.
 |---|---|---|
 | PLL3 ref (HSE / M) | 16 / 6 = 2.6667 MHz | 16 / 5 = **3.2 MHz** |
 | VCO (ref × N) | 786.667 MHz | **614.4 MHz** |
-| SAI kernel (VCO / P) | 49.167 MHz | **61.44 MHz** |
-| MCKDIV chosen by HAL | 4 | **5** |
+| SAI kernel (VCO / P) | 49.167 MHz | **24.576 MHz** |
+| MCKDIV chosen by HAL | 4 | **2** |
 | MCLK | 12.291667 MHz | **12.288 MHz** = 256 × 48000 |
 | **sample rate** | **48014.32 Hz (+298 ppm)** | **48000.0000 Hz (0.0 ppm)** |
-| PLL3R kernel (ADC, I2C4) | 24.583 MHz | 24.576 MHz |
+| PLL3R kernel (ADC) | 24.583 MHz | 24.576 MHz |
 
 Every divider in the patched column is an integer and `FRACN` is zero, so the
 result is exact rather than rounded. `PLL3R` moves from 32 to 25 purely to keep
-the ADC and I2C4 kernel clock near its original 24.58 MHz after the VCO change;
-it has nothing to do with audio. Both configurations keep the PLL3 input inside
-`RCC_PLL3VCIRANGE_1` (2–4 MHz) and the VCO inside `RCC_PLL3VCOWIDE`
+the ADC kernel clock near its original 24.58 MHz after the VCO change;
+it has nothing to do with audio. (`ConfigureClocks()` also assigns PLL3 to
+I2C4, but `RCC_PERIPHCLK_I2C4` is not in its `PeriphClockSelection` mask, so
+that assignment is never applied.) Both configurations keep the PLL3 input
+inside `RCC_PLL3VCIRANGE_1` (2–4 MHz) and the VCO inside `RCC_PLL3VCOWIDE`
 (192–836 MHz).
+
+`PLL3P` is 25 because the patch changes libDaisy itself, and 25 keeps every
+sample rate libDaisy offers exact: 8, 16, 32, 48 and 96 kHz get MCKDIV 12, 6,
+3, 2 and 1. `PLL3P = 10` is exact at 8, 16 and 48 kHz too, but runs 32 kHz and
+96 kHz +7 % and +25 % fast for any project that uses them.
 
 ### What the patch buys, and what it does not
 
@@ -189,6 +196,12 @@ board, same host, same firmware source; the only difference is whether
 | sawtooth period | 4.1 s | 16.9 s |
 | sawtooth amplitude | ~67 frames | ~47 frames |
 | underruns / overruns / `tx_size_deviations` | 0 / 0 / 0 | 0 / 0 / 0 |
+
+The patched run was taken with an earlier form of the patch, `PLL3P = 10`,
+which gives the codec the same 12.288 MHz MCLK as `PLL3P = 25`. A later
+160-second run with `PLL3P = 25` gave 59 ppm, a standing offset of 31 / 31
+frames, a 272…320 `pb_av` band, a 16.9 s sawtooth of ~47 frames, and no
+underruns, overruns or `tx_size_deviations`.
 
 Both runs passed every check. The unpatched build is not broken; what it lacks
 is cushion. `REC_RATE_DIV` and `PB_RATE_DIV` are 8, so the standing ring error a
@@ -228,7 +241,7 @@ descriptor declares a single discrete frequency (`bSamFreqType = 0x01`,
 cannot request a different rate.
 
 **Why it is fixed.** The whole point of the PLL3 work above is an integer clock
-chain: HSE 16 MHz / M=5 = 3.2 MHz, × N=192 = 614.4 MHz VCO, / R=25 =
+chain: HSE 16 MHz / M=5 = 3.2 MHz, × N=192 = 614.4 MHz VCO, / P=25 =
 24.576 MHz = 48000 × 512, with `FRACN = 0`. That yields exactly 48000.0000 Hz
 with no fractional synthesis anywhere in the path, and it is verifiable from
 the live registers with `read_sai_clock.py` rather than taken on trust.

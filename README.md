@@ -162,6 +162,12 @@ with `read_transport_diagnostics.py`:
 | sawtooth period | 4.1 s | 16.9 s |
 | underruns / overruns / packet-size deviations | 0 / 0 / 0 | 0 / 0 / 0 |
 
+The patched run was taken with an earlier form of the patch, `PLL3P = 10`,
+which gives the codec the same 12.288 MHz MCLK as the `PLL3P = 25` patch below.
+A later 160-second run with `PLL3P = 25` gave 59 ppm, a standing offset of
+31 / 31 frames, 272 frames worst margin, a 16.9 s sawtooth, and no underruns,
+overruns or packet-size deviations.
+
 **Both runs passed every check.** Nothing underran, nothing overran, no IN
 packet came out the wrong size, the watchdog never fired. An unpatched build is
 not broken, and on a host that delivers on time you will not hear it.
@@ -195,7 +201,7 @@ earlier at `cc146d50`:
 |---|---|---|
 | 490 | `PLL3M = 6;` | `PLL3M = `**`5`**`;` |
 | 491 | `PLL3N = 295;` | `PLL3N = `**`192`**`;` |
-| 492 | `PLL3P = 16;` | `PLL3P = `**`10`**`;` |
+| 492 | `PLL3P = 16;` | `PLL3P = `**`25`**`;` |
 | 494 | `PLL3R = 32;` | `PLL3R = `**`25`**`;` |
 
 Four lines. `PLL3Q` and `PLL3FRACN` stay exactly as they are — `FRACN` must
@@ -224,7 +230,7 @@ python3 read_sai_clock.py
 
 | `PLL3DIVR` reads | meaning |
 |---|---|
-| **`0x180312BF`** | patch is live — SAI at **48000.0000 Hz**, 0.0 ppm |
+| **`0x180330BF`** | patch is live — SAI at **48000.0000 Hz**, 0.0 ppm |
 | `0x1F031F26` | stock libDaisy — **+298 ppm**, patch not applied or library not rebuilt |
 
 The value is derived from the constants above, so it tests what the silicon is
