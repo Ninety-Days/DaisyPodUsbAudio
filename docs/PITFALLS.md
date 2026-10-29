@@ -28,13 +28,7 @@ again.
 
 The same shadowing applies to `USBD_SUPPORT_USER_STRING`, which has a
 consequence of its own — see section 2 — and to `USBD_DEBUG_LEVEL`,
-which has none. The first one matters: `usbd_ctlreq.c` tests it in the
-default branch of `GET_DESCRIPTOR(STRING)`, the branch that catches any
-string index this device does not define — Windows asks for index `0xEE`,
-the Microsoft OS String, during enumeration. With the macro set, that branch
-calls `pdev->pClass->GetUsrStrDescriptor()`, and `USBD_AUDIO` leaves that
-field uninitialised, so the device would hard-fault instead of stalling. It
-is pinned to `0U` in `usbd_conf.h` with that reasoning written beside it.
+which has none.
 
 **The interface count lives in four places**, which is the underlying reason
 this trap exists at all:
@@ -49,27 +43,34 @@ this trap exists at all:
 Plus libDaisy's `1U`, which wins in translation units that do not include
 `usbd_audio.h`. Changing the interface count means changing all four.
 
-## 2. `USBD_AUDIO_GetUsrStrDesc` is not an unused stub
+## 2. `USBD_AUDIO_GetUsrStrDesc` must stay
 
-It answers `GET_DESCRIPTOR(STRING)` for any index this device does not
-define — 6 and above, since `usbd_desc.c` covers 0 to 5. Removing it as dead
-code, or dropping the last element of `USBD_AUDIO` to match the fourteen
-fields the struct appears to have, brings back a measured failure: the
-control transfer goes unanswered and playback stops until the device is
-replugged.
+On libDaisy `85172e2b` it answers `GET_DESCRIPTOR(STRING)` for any index
+this device does not define — 6 and above, since `usbd_desc.c` covers 0 to
+5. There, removing it as dead code, or dropping the last element of
+`USBD_AUDIO` to match the fourteen fields the struct appears to have, brings
+back a measured failure: the control transfer goes unanswered and playback
+stops until the device is replugged.
 
 The branch that reaches it lives in `usbd_ctlreq.c` under
 `#if (USBD_SUPPORT_USER_STRING == 1U)`. This project's `usbd_conf.h` sets
 that to `0U`, but that file is not the one compiled against `usbd_ctlreq.c` —
-libDaisy's copy is, and it sets `1U`. Same shadowing as section 1.
+libDaisy's copy is, and on `85172e2b` it sets `1U`. Same shadowing as
+section 1. libDaisy commit `7651b28` renamed the macro to
+`USBD_SUPPORT_USER_STRING_DESC`, the name ST's middleware has used since
+v2.5.3. On `cc146d50` the old name is defined nowhere in that translation
+unit, so the branch is compiled out and its `#else` stalls the request; the
+stub is still compiled, but nothing calls it. It stays because the older
+tree needs it.
 
-Reachable in practice by anything that walks string indices: `lsusb -v`,
-USBTreeView, and Windows asking for index `0xEE` on first enumeration.
+The request comes in practice from anything that walks string indices:
+`lsusb -v`, USBTreeView, and Windows asking for index `0xEE` on first
+enumeration.
 
 The `#if` around the stub tests both `USBD_SUPPORT_USER_STRING` and
-`USBD_SUPPORT_USER_STRING_DESC` because ST renamed the macro. If a future
-libDaisy guards the struct field with only one spelling, the build breaks
-loudly instead of quietly losing the stub.
+`USBD_SUPPORT_USER_STRING_DESC` because ST renamed the macro, so the stub
+is compiled on both trees: under the old name on `85172e2b`, under the new
+one on `cc146d50`.
 
 ---
 

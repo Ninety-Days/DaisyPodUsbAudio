@@ -99,10 +99,13 @@ extern "C" {
 #define USBD_MAX_NUM_CONFIGURATION  1U
 #define USBD_MAX_STR_DESC_SIZ       512U
 /* Has no effect: usbd_ctlreq.c is compiled against libDaisy's copy of this
-   header, not this one, and that copy sets the macro to 1U. Kept at 0U so
-   this file states what the project intends. What actually keeps the
-   unknown-string path safe is the USBD_AUDIO_GetUsrStrDesc stub in
-   usbd_audio.c -- see PITFALLS section 2. */
+   header, not this one. On libDaisy 85172e2b that copy sets the macro to
+   1U, and the USBD_AUDIO_GetUsrStrDesc stub in usbd_audio.c keeps the
+   unknown-string path safe. On cc146d50 that copy has the renamed
+   USBD_SUPPORT_USER_STRING_DESC instead (libDaisy 7651b28), this name is
+   undefined in usbd_ctlreq.c, and its #else stalls the request. Kept at
+   0U so this file states what the project intends. See PITFALLS
+   section 2. */
 #define USBD_SUPPORT_USER_STRING    0U
 
 /* Set to 0 — we have no USB serial port when running as audio device,

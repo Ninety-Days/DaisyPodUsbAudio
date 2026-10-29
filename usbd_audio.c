@@ -99,14 +99,16 @@ extern volatile uint32_t pb_read_advances;
 
 /* GET_DESCRIPTOR(STRING) for any index this device does not define -- 6 and
    above; 0..5 are answered by usbd_desc.c. libDaisy's usbd_conf.h is the copy
-   that reaches usbd_ctlreq.c and it sets USBD_SUPPORT_USER_STRING to 1U, so
-   the branch there calls this slot rather than stalling. Leaving the slot
-   empty leaves the control transfer unanswered and kills playback until the
-   device is replugged -- measured, not inferred. Stall instead, which is what
-   the spec asks for and what the #else in usbd_ctlreq.c would have done.
-   Both macro spellings are tested because ST renamed it; if a future libDaisy
-   guards the struct field with only one of them, this fails to compile rather
-   than silently reverting. */
+   that reaches usbd_ctlreq.c. On libDaisy 85172e2b it sets
+   USBD_SUPPORT_USER_STRING to 1U, so the branch there calls this slot rather
+   than stalling, and leaving the slot empty leaves the control transfer
+   unanswered and kills playback until the device is replugged -- measured on
+   that tree, not inferred. Stall instead, which is what the spec asks for and
+   what the #else in usbd_ctlreq.c does. On cc146d50 libDaisy has renamed the
+   macro (7651b28), the branch is compiled out and that #else stalls the
+   request; this slot is compiled but never called, and stays for the older
+   tree. Both macro spellings are tested because ST renamed it, so the slot
+   is compiled on both trees. */
 #if (defined(USBD_SUPPORT_USER_STRING)      && (USBD_SUPPORT_USER_STRING      == 1U)) || \
     (defined(USBD_SUPPORT_USER_STRING_DESC) && (USBD_SUPPORT_USER_STRING_DESC == 1U))
 static uint8_t *USBD_AUDIO_GetUsrStrDesc(USBD_HandleTypeDef *pdev,
