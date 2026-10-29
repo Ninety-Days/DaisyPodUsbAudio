@@ -4,6 +4,8 @@
   * @brief   USB Device descriptors for Daisy Seed UAC1 Bidirectional
   *
   * @attention
+  * Copyright (c) 2019 STMicroelectronics. All rights reserved.
+  *
   * PROVENANCE: descriptor-callback layout and the IntToUnicode /
   * Get_SerialNum helpers follow ST's STM32CubeF4 AUDIO_Standalone
   * example; the file reached this project via libDaisy and a community

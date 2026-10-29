@@ -28,12 +28,12 @@ file set and cannot be covered by the root `LICENSE`:
   a processing unit manufactured by or for STMicroelectronics. Satisfied:
   the target is an STM32H750 on Daisy Seed hardware.
 - **Section 5** — the software may not be placed under Open Source Terms,
-  a category §5 defines broadly enough to name the BSD license explicitly.
-  MIT is functionally equivalent to BSD, so this clause is the reason the
-  root `LICENSE` grant is scoped to this project's own files and is never
-  extended to ST's. The scoping is not a formality: applying MIT
-  repository-wide would breach §5. libDaisy, which redistributes ST files
-  under its own MIT, takes the same approach.
+  a category §5 defines broadly enough to name the BSD and MIT licenses
+  explicitly, so this clause is the reason the root `LICENSE` grant is
+  scoped to this project's own files and is never extended to ST's. The
+  scoping is not a formality: applying MIT repository-wide would breach
+  §5. libDaisy, which redistributes ST files under its own MIT, takes the
+  same approach.
 
 **Upstream:** <https://github.com/STMicroelectronics/stm32_mw_usb_device>
 
@@ -53,14 +53,15 @@ Also derived from ST, from a different product:
 | File | Relationship |
 |---|---|
 | `usbd_audio_if.c`, `usbd_audio_if.h` | **MIT, not ST's** — listed here only because the callback names and fops-table shape (`Audio_Init`, `Audio_DeInit`, `Audio_PlaybackCmd`, `Audio_VolumeCtl`, `Audio_MuteCtl`, `Audio_PeriodicTC`, `Audio_GetState`) match this example, confirmed by direct comparison. Those names are the linkage contract with `usbd_audio.c` and cannot differ. Every function body — the rings, the fractional Q16 correctors, sample packing, MIDI parsing — was written for this project. |
-| `usbd_desc.c` | Descriptor-callback layout and the `IntToUnicode` / `Get_SerialNum` helpers follow the same example. |
+| `usbd_desc.c` | Descriptor-callback layout and the `IntToUnicode` / `Get_SerialNum` helpers follow the same example. The file itself reached this project through libDaisy — see §2. |
 
 ### ST HAL and CMSIS
 
 `usbd_irq.c` and all `HAL_*` / `__HAL_*` calls target ST's STM32CubeH7
 HAL, licensed **BSD-3-Clause** (per STM32CubeH7's `LICENSE.md`) — a
 separate and more permissive grant than SLA0044. The HAL sources are not
-vendored here; they arrive via libDaisy.
+vendored here; they arrive via libDaisy. CMSIS (Arm and ST) arrives the
+same way and is licensed **Apache-2.0**.
 
 ---
 
@@ -79,8 +80,9 @@ SLA0044 §5 is the binding constraint.
 | File | Relationship |
 |---|---|
 | `usbd_desc.h` | Apart from renamed descriptor-table symbols and the removal of the high-speed extern, a copy of `src/usbd/usbd_desc.h`. |
+| `usbd_desc.c` | Derived from `src/usbd/usbd_desc.c`; the immediate upstream is libDaisy, so libDaisy's MIT terms apply alongside SLA0044 on the ST content inside. |
 | `usbd_conf.c` | Derived from `src/usbd/usbd_conf.c`; the immediate upstream is libDaisy, not ST, so libDaisy's MIT terms apply alongside SLA0044 on the ST content inside. Deviations from libDaisy's copy are this project's own and exist to support a device libDaisy's copy does not describe: a third TX FIFO for the MIDI Bulk IN endpoint, the FIFO address layout that follows from it, the RxFIFO size, and the `HAL_PCD_ResumeCallback` IN-pipe re-arm. |
-| `usbd_conf.h` | Same terms and same immediate upstream. Substantially rewritten for this project's endpoint and interface count. Carries the `USBD_MAX_NUM_INTERFACES` shadowing warning — see §1 above and `docs/PITFALLS.md`. |
+| `usbd_conf.h` | Same terms and same immediate upstream. The code is libDaisy's copy with `USBD_MAX_NUM_INTERFACES` raised from `1U` to `4U`, `USBD_DEBUG_LEVEL` lowered from `3U` to `0U`, libDaisy's `USBD_SUPPORT_USER_STRING_DESC 1U` replaced by `USBD_SUPPORT_USER_STRING 0U`, `DEVICE_HS` removed and the debug-log macros reduced to empty definitions; the extended comments are this project's text. Carries the `USBD_MAX_NUM_INTERFACES` shadowing warning — see §1 above and `docs/PITFALLS.md`. |
 
 libDaisy's MIT text must be reproduced in full in any distribution. It is
 included as `LICENSE-libDaisy-MIT.txt`.

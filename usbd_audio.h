@@ -2,6 +2,7 @@
  * usbd_audio.h — declarations and constants for the UAC1 + MIDIStreaming
  * class implementation in usbd_audio.c.
  *
+ * ST's portions: Copyright (c) 2015 STMicroelectronics. All rights reserved.
  * MIT License (see LICENSE at repository root) applies to this project's
  * contributions in this file, not to the file as a whole; the SCOPE section
  * of that file names which portions are ST's.

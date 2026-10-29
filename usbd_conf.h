@@ -4,6 +4,8 @@
   * @brief   USB Device configuration for Daisy Seed UAC1 Bidirectional Audio
   *
   * @attention
+  * Copyright (c) 2019 STMicroelectronics. All rights reserved.
+  *
   * PROVENANCE: the immediate upstream for this file is libDaisy
   * (src/usbd/usbd_conf.h, Electro-Smith, MIT, Copyright (c) 2019
   * Electrosmith), which redistributes the STMicroelectronics original

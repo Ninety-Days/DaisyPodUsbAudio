@@ -31,10 +31,13 @@ apply at all.
 Covered by MIT (this project's own work):
 
   main.cpp, usbd_irq.c, usbd_compat.h, the application layer of
-  usbd_audio_if.c/h, the descriptor bytes and composite-device structure in
-  usbd_audio.c/h, the tests under tests/, read_transport_diagnostics.py,
-  read_sai_clock.py, read_chip_rev.py, gen_table.py, the scripts under
-  scripts/, and the project documentation.
+  usbd_audio_if.c/h, this project's code in usbd_audio.c/h (including the
+  descriptor bytes and composite-device structure, both stream directions,
+  volume control, MIDIStreaming, the ping-pong transmit path, the IN-pipe
+  watchdog, the vendor-request diagnostics, the cache-coherency fix and
+  the constants that describe this layout), the tests under tests/,
+  read_transport_diagnostics.py, read_sai_clock.py, read_chip_rev.py,
+  gen_table.py, the scripts under scripts/, and the project documentation.
 
   usbd_compat.h is included by ST-derived files but contains no ST code: it
   defines accessor macros that dispatch on the declared type of two
@@ -49,25 +52,27 @@ NOT covered — third-party code under its own terms:
     hardcoded 4U interface bound, and the pClass accesses routed through
     usbd_compat.h so the file builds against both generations of ST's
     middleware. Both are described in THIRD_PARTY_NOTICES.md; nothing else
-    in that file differs from upstream. The class-callback contract and the
-    descriptor structures and macros in usbd_audio.h, and the fops-table
-    shape and IntToUnicode/Get_SerialNum helpers in usbd_desc.c, are ST's.
+    in that file differs from upstream. The USBD_ClassTypeDef callback
+    structure of usbd_audio.c and the lines of ST's example that remain in
+    it; the class-callback contract and the structures and macros that
+    come from ST's usbd_audio.h, including those whose values were changed
+    here; and the fops-table shape and IntToUnicode/Get_SerialNum helpers
+    in usbd_desc.c, are ST's.
     SLA0044 restricts execution to ST silicon, and its section 5 forbids
     subjecting THAT software to Open Source Terms — a category it defines
-    broadly enough to name BSD explicitly. MIT is functionally equivalent to
-    BSD. This is precisely why the grant above is scoped to this project's
-    own files and is never extended to ST's: applying MIT to ST's files
-    would breach section 5. Do not "simplify" this by declaring the whole
-    repository MIT.
+    broadly enough to name BSD and MIT explicitly. This is precisely why
+    the grant above is scoped to this project's own files and is never
+    extended to ST's: applying MIT to ST's files would breach section 5.
+    Do not "simplify" this by declaring the whole repository MIT.
 
   * Electro-Smith libDaisy, MIT (LICENSE-libDaisy-MIT.txt).
-    usbd_desc.h and the base of usbd_conf.c/h arrive through libDaisy, which
-    redistributes ST files under its own MIT while those files retain their
-    ST headers internally — so they carry both obligations. libDaisy's
-    notice must be reproduced in any distribution.
+    usbd_desc.h and the base of usbd_desc.c and usbd_conf.c/h arrive
+    through libDaisy, which redistributes ST files under its own MIT while
+    those files retain their ST headers internally — so they carry both
+    obligations. libDaisy's notice must be reproduced in any distribution.
 
-  * ST HAL and CMSIS, BSD-3-Clause. Not present in this tree; reached
-    through libDaisy.
+  * ST HAL (BSD-3-Clause) and CMSIS (Apache-2.0). Not present in this
+    tree; reached through libDaisy.
 
 THIRD_PARTY_NOTICES.md is the authoritative file-by-file breakdown and was
 verified by direct comparison against stm32_mw_usb_device v2.5.2, libDaisy

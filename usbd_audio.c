@@ -2,6 +2,7 @@
  * usbd_audio.c — UAC1 bidirectional, 24-bit, + MIDIStreaming
  *
  * @attention
+ * ST's portions: Copyright (c) 2015 STMicroelectronics. All rights reserved.
  * MIT License (see LICENSE at repository root) applies to this project's
  * contributions in this file, not to the file as a whole -- see that
  * file's SCOPE section for which portions are covered.

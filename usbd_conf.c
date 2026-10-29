@@ -4,6 +4,8 @@
   * @brief   USB Device board support / PCD glue layer for Daisy Seed UAC1
   *
   * @attention
+  * Copyright (c) 2019 STMicroelectronics. All rights reserved.
+  *
   * PROVENANCE: this file reached the project as ST -> libDaisy -> a
   * community firmware archive -> here. The immediate upstream is
   * libDaisy's src/usbd/usbd_conf.c (Electro-Smith, MIT, Copyright (c)
