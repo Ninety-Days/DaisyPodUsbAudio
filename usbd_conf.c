@@ -288,9 +288,9 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 
            It is left ENABLED anyway, deliberately:
              - The cost is noise. One interrupt per 1 ms frame costs a few
-               hundred cycles against a 480,000-cycle budget, i.e. well
-               under 0.15%. Not a lever on CPU load, and not worth
-               revalidating a configuration that is field-proven.
+               hundred cycles against a 400,000-cycle budget at
+               400 MHz, i.e. around 0.1%. Not a lever on CPU load, and
+               not worth revalidating a configuration that is field-proven.
              - An explicit-feedback endpoint, if one is ever added, needs
                SOF. Turning it off now would only have to be undone then.
 

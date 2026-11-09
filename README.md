@@ -425,7 +425,8 @@ Control Change store, not an audio path.
 
 Adding a real engine on top is a separate problem, and most of its difficulty
 has nothing to do with USB: fitting the engine into the real-time budget (one
-48 kHz block on this part is about 480 000 cycles, and overrunning it by any
+48 kHz block is 48 frames, 1 ms: about 400 000 cycles at the 400 MHz that
+`hw.Init()` selects, 480 000 with `hw.Init(true)`; overrunning it by any
 amount is an audible dropout rather than a slowdown); numerical behaviour on
 program material as against a test harness; gain staging across boundaries that
 carry different signals by design; and keeping all of it inside the transport's
